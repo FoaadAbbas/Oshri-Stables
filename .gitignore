@@ -1,0 +1,9 @@
+node_modules
+.env
+.DS_Store
+dist
+build
+*.db
+server/data.db
+server/uploads/*
+!server/uploads/.keep
