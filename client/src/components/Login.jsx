@@ -42,9 +42,11 @@ export default function Login() {
             'auth/email-already-in-use': 'האימייל או שם המשתמש כבר תפוסים.',
             'auth/weak-password': 'הסיסמה חלשה מדי (לפחות 6 תווים).',
             'auth/invalid-credential': 'פרטי התחברות שגויים.',
-            'auth/too-many-requests': 'יותר מדי ניסיונות. אנא נסה שוב מאוחר יותר.'
+            'auth/too-many-requests': 'יותר מדי ניסיונות. אנא נסה שוב מאוחר יותר.',
+            'auth/popup-closed-by-user': 'ההתחברות בוטלה על ידי המשתמש.',
+            'auth/cancelled-popup-request': 'בקשת התחברות בוטלה.'
         };
-        return messages[code] || 'אירעה שגיאה. אנא נסה שנית.';
+        return messages[code] || `אירעה שגיאה: ${code}`;
     };
 
     // --- Actions ---
