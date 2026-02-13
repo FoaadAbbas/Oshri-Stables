@@ -12,6 +12,7 @@ export default function HorseForm({ horse, onSubmit, onClose }) {
     );
     const [loading, setLoading] = useState(false);
     const fileInputRef = useRef(null);
+    const cameraInputRef = useRef(null);
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -66,9 +67,17 @@ export default function HorseForm({ horse, onSubmit, onClose }) {
                                 <img src={preview} alt="תצוגה מקדימה" className="image-preview" />
                             ) : (
                                 <div className="image-upload-text">
-                                    <div style={{ fontSize: '2rem', marginBottom: 8 }}>📷</div>
-                                    <span>לחץ להעלאת תמונה</span>
-                                    <div style={{ fontSize: '0.8rem', marginTop: 4, color: 'var(--text-tertiary)' }}>
+                                    <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+                                        <div onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }} style={{ cursor: 'pointer' }}>
+                                            <div style={{ fontSize: '2rem', marginBottom: 8 }}>🖼️</div>
+                                            <span>גלריה</span>
+                                        </div>
+                                        <div onClick={(e) => { e.stopPropagation(); cameraInputRef.current?.click(); }} style={{ cursor: 'pointer' }}>
+                                            <div style={{ fontSize: '2rem', marginBottom: 8 }}>📷</div>
+                                            <span>מצלמה</span>
+                                        </div>
+                                    </div>
+                                    <div style={{ fontSize: '0.8rem', marginTop: 12, color: 'var(--text-tertiary)' }}>
                                         (עד 10MB)
                                     </div>
                                 </div>
@@ -78,6 +87,14 @@ export default function HorseForm({ horse, onSubmit, onClose }) {
                             ref={fileInputRef}
                             type="file"
                             accept="image/*"
+                            onChange={handleFileChange}
+                            style={{ display: 'none' }}
+                        />
+                        <input
+                            ref={cameraInputRef}
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
                             onChange={handleFileChange}
                             style={{ display: 'none' }}
                         />
