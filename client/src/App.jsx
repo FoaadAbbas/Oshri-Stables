@@ -10,6 +10,7 @@ import Vaccines from './components/Vaccines';
 import Pregnancy from './components/Pregnancy';
 import Notifications from './components/Notifications';
 import Chatbot from './components/Chatbot';
+import StatsDashboard from './components/StatsDashboard';
 import * as api from './api';
 
 const TABS = [
@@ -17,6 +18,7 @@ const TABS = [
     { id: 'visits', label: '📋 ביקורי רופאים', icon: '📋' },
     { id: 'vaccines', label: '💉 חיסונים', icon: '💉' },
     { id: 'pregnancy', label: '🤰 מעקב הריון', icon: '🤰' },
+    { id: 'stats', label: '📊 סטטיסטיקות', icon: '📊' },
 ];
 
 export default function App() {
@@ -244,6 +246,14 @@ export default function App() {
                         userId={user.uid}
                         userEmail={user.email}
                         onRefresh={loadData}
+                    />
+                )}
+                {activeTab === 'stats' && (
+                    <StatsDashboard
+                        horses={horses}
+                        visits={visits}
+                        vaccines={vaccines}
+                        pregnancies={pregnancies}
                     />
                 )}
             </main>

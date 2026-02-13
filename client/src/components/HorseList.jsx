@@ -2,25 +2,38 @@ import React, { useState } from 'react';
 import { doc, deleteDoc, addDoc, updateDoc, collection } from 'firebase/firestore';
 import { firestoreDb } from '../firebase';
 import HorseForm from './HorseForm';
+import HorseTimeline from './HorseTimeline';
 import * as api from '../api';
 import { getImageUrl } from '../api';
 
-export default function HorseList({ horses, userId, userEmail, isAdmin, onRefresh }) {
+export default function HorseList({ horses, visits, vaccines, pregnancies, userId, userEmail, isAdmin, onRefresh }) {
     const [showForm, setShowForm] = useState(false);
     const [editHorse, setEditHorse] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterGender, setFilterGender] = useState('all');
+
+    // Timeline state
+    const [showTimeline, setShowTimeline] = useState(false);
+    const [timelineHorse, setTimelineHorse] = useState(null);
+
+    // Filter Logic
+    const filteredHorses = horses.filter(horse => {
+        const matchesSearch = horse.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            horse.breed.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesGender = filterGender === 'all' || horse.gender === filterGender;
+        return matchesSearch && matchesGender;
+    });
 
     const handleDelete = async (id) => {
         if (!confirm('האם אתה בטוח שברצונך למחוק את הסוס? פעולה זו תמחק גם את כל הנתונים המשויכים אליו.')) return;
         try {
             const result = await api.deleteHorse(userId, id, userEmail);
 
-            // Also delete from Firebase if it was migrated
             if (result.firebaseId) {
                 try {
                     await deleteDoc(doc(firestoreDb, 'horses', result.firebaseId));
                 } catch (e) { console.warn('Firebase horse delete failed:', e); }
             }
-            // Delete related Firebase records
             if (result.relatedFirebaseIds) {
                 const { visits, vaccines, pregnancies } = result.relatedFirebaseIds;
                 for (const fid of (visits || [])) {
@@ -45,6 +58,11 @@ export default function HorseList({ horses, userId, userEmail, isAdmin, onRefres
         setShowForm(true);
     };
 
+    const handleTimeline = (horse) => {
+        setTimelineHorse(horse);
+        setShowTimeline(true);
+    };
+
     const handleFormClose = () => {
         setShowForm(false);
         setEditHorse(null);
@@ -53,10 +71,7 @@ export default function HorseList({ horses, userId, userEmail, isAdmin, onRefres
     const handleFormSubmit = async (formData) => {
         try {
             if (editHorse) {
-                // Update locally
                 const updated = await api.updateHorse(userId, editHorse.id, formData, userEmail);
-
-                // Sync edit to Firebase
                 if (editHorse.firebaseId) {
                     try {
                         await updateDoc(doc(firestoreDb, 'horses', editHorse.firebaseId), {
@@ -68,10 +83,7 @@ export default function HorseList({ horses, userId, userEmail, isAdmin, onRefres
                     } catch (e) { console.warn('Firebase update failed:', e); }
                 }
             } else {
-                // Create locally
                 const created = await api.createHorse(userId, formData, userEmail);
-
-                // Sync create to Firebase
                 try {
                     const docRef = await addDoc(collection(firestoreDb, 'horses'), {
                         userId,
@@ -80,7 +92,6 @@ export default function HorseList({ horses, userId, userEmail, isAdmin, onRefres
                         breed: created.breed,
                         gender: created.gender,
                     });
-                    // Link the Firebase doc ID back to local record
                     await api.setFirebaseId('horses', userId, created.id, docRef.id, userEmail);
                 } catch (e) { console.warn('Firebase create failed:', e); }
             }
@@ -109,8 +120,26 @@ export default function HorseList({ horses, userId, userEmail, isAdmin, onRefres
                 </div>
             </div>
 
-            {/* Add button */}
-            <div style={{ marginBottom: 24 }}>
+            {/* Controls: Search, Filter, Add */}
+            <div style={{ display: 'flex', gap: '10px', marginBottom: 24, flexWrap: 'wrap', alignItems: 'center' }}>
+                <input
+                    type="text"
+                    placeholder="🔍 חיפוש סוס..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="form-input"
+                    style={{ flex: 1, minWidth: '200px' }}
+                />
+                <select
+                    value={filterGender}
+                    onChange={(e) => setFilterGender(e.target.value)}
+                    className="form-select"
+                    style={{ width: 'auto' }}
+                >
+                    <option value="all">הכל</option>
+                    <option value="זכר">זכרים</option>
+                    <option value="נקבה">נקבות</option>
+                </select>
                 <button className="btn btn-primary" onClick={() => setShowForm(true)}>
                     ✚ הוסף סוס חדש
                 </button>
@@ -118,13 +147,15 @@ export default function HorseList({ horses, userId, userEmail, isAdmin, onRefres
 
             {/* Horse cards grid */}
             <div className="horses-grid">
-                {horses.length === 0 ? (
+                {filteredHorses.length === 0 ? (
                     <div className="empty-state">
                         <div className="empty-state-icon">🐴</div>
-                        <div className="empty-state-text">אין סוסים במערכת. הוסף סוס ראשון!</div>
+                        <div className="empty-state-text">
+                            {horses.length === 0 ? 'אין סוסים במערכת. הוסף סוס ראשון!' : 'לא נמצאו סוסים שתואמים לחיפוש.'}
+                        </div>
                     </div>
                 ) : (
-                    horses.map(horse => (
+                    filteredHorses.map(horse => (
                         <div key={horse.id} className="horse-card">
                             {horse.image ? (
                                 <img
@@ -159,15 +190,18 @@ export default function HorseList({ horses, userId, userEmail, isAdmin, onRefres
                                 </div>
                                 <div className="horse-card-actions">
                                     <button className="btn btn-edit btn-sm" onClick={() => handleEdit(horse)}>
-                                        ✎ ערוך
+                                        ✎
+                                    </button>
+                                    <button className="btn btn-secondary btn-sm" onClick={() => handleTimeline(horse)} title="ציר זמן">
+                                        ⏳
                                     </button>
                                     {horse.certImage && (
-                                        <a href={getImageUrl(horse.certImage)} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-                                            📜 תעודה
+                                        <a href={getImageUrl(horse.certImage)} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }} title="תעודה">
+                                            📜
                                         </a>
                                     )}
                                     <button className="btn btn-danger btn-sm" onClick={() => handleDelete(horse.id)}>
-                                        ✕ מחק
+                                        ✕
                                     </button>
                                 </div>
                             </div>
@@ -182,6 +216,17 @@ export default function HorseList({ horses, userId, userEmail, isAdmin, onRefres
                     horse={editHorse}
                     onSubmit={handleFormSubmit}
                     onClose={handleFormClose}
+                />
+            )}
+
+            {/* Timeline Modal */}
+            {showTimeline && timelineHorse && (
+                <HorseTimeline
+                    horse={timelineHorse}
+                    visits={visits}
+                    vaccines={vaccines}
+                    pregnancies={pregnancies}
+                    onClose={() => setShowTimeline(false)}
                 />
             )}
         </div>
