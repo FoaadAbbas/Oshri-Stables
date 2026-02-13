@@ -23,7 +23,10 @@ export function getImageUrl(filename) {
 // ===== ADMIN =====
 export async function checkAdmin(userId, userEmail) {
     const res = await fetch(`${API_BASE}/api/auth/check-admin`, { headers: getHeaders(userId, userEmail) });
-    if (!res.ok) return false;
+    if (!res.ok) {
+        console.error(`CheckAdmin failed: ${res.status} ${res.statusText}`);
+        return false;
+    }
     const data = await res.json();
     return data.isAdmin;
 }
@@ -31,7 +34,7 @@ export async function checkAdmin(userId, userEmail) {
 // ===== HORSES =====
 export async function fetchHorses(userId, userEmail) {
     const res = await fetch(`${API_BASE}/api/horses`, { headers: getHeaders(userId, userEmail) });
-    if (!res.ok) throw new Error('Failed to fetch horses');
+    if (!res.ok) throw new Error(`Failed to fetch horses: ${res.status} ${res.statusText}`);
     return res.json();
 }
 
@@ -41,7 +44,7 @@ export async function createHorse(userId, formData, userEmail) {
         headers: getUploadHeaders(userId, userEmail),
         body: formData,
     });
-    if (!res.ok) throw new Error('Failed to create horse');
+    if (!res.ok) throw new Error(`Failed to create horse: ${res.status} ${res.statusText}`);
     return res.json();
 }
 
@@ -51,7 +54,7 @@ export async function updateHorse(userId, id, formData, userEmail) {
         headers: getUploadHeaders(userId, userEmail),
         body: formData,
     });
-    if (!res.ok) throw new Error('Failed to update horse');
+    if (!res.ok) throw new Error(`Failed to update horse: ${res.status} ${res.statusText}`);
     return res.json();
 }
 
@@ -60,14 +63,14 @@ export async function deleteHorse(userId, id, userEmail) {
         method: 'DELETE',
         headers: getHeaders(userId, userEmail),
     });
-    if (!res.ok) throw new Error('Failed to delete horse');
+    if (!res.ok) throw new Error(`Failed to delete horse: ${res.status} ${res.statusText}`);
     return res.json();
 }
 
 // ===== VISITS =====
 export async function fetchVisits(userId, userEmail) {
     const res = await fetch(`${API_BASE}/api/visits`, { headers: getHeaders(userId, userEmail) });
-    if (!res.ok) throw new Error('Failed to fetch visits');
+    if (!res.ok) throw new Error(`Failed to fetch visits: ${res.status} ${res.statusText}`);
     return res.json();
 }
 
@@ -77,7 +80,7 @@ export async function createVisit(userId, data, userEmail) {
         headers: getHeaders(userId, userEmail),
         body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error('Failed to create visit');
+    if (!res.ok) throw new Error(`Failed to create visit: ${res.status} ${res.statusText}`);
     return res.json();
 }
 
@@ -86,14 +89,14 @@ export async function deleteVisit(userId, id, userEmail) {
         method: 'DELETE',
         headers: getHeaders(userId, userEmail),
     });
-    if (!res.ok) throw new Error('Failed to delete visit');
+    if (!res.ok) throw new Error(`Failed to delete visit: ${res.status} ${res.statusText}`);
     return res.json();
 }
 
 // ===== VACCINES =====
 export async function fetchVaccines(userId, userEmail) {
     const res = await fetch(`${API_BASE}/api/vaccines`, { headers: getHeaders(userId, userEmail) });
-    if (!res.ok) throw new Error('Failed to fetch vaccines');
+    if (!res.ok) throw new Error(`Failed to fetch vaccines: ${res.status} ${res.statusText}`);
     return res.json();
 }
 
@@ -103,7 +106,7 @@ export async function createVaccine(userId, data, userEmail) {
         headers: getHeaders(userId, userEmail),
         body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error('Failed to create vaccine');
+    if (!res.ok) throw new Error(`Failed to create vaccine: ${res.status} ${res.statusText}`);
     return res.json();
 }
 
@@ -112,14 +115,14 @@ export async function deleteVaccine(userId, id, userEmail) {
         method: 'DELETE',
         headers: getHeaders(userId, userEmail),
     });
-    if (!res.ok) throw new Error('Failed to delete vaccine');
+    if (!res.ok) throw new Error(`Failed to delete vaccine: ${res.status} ${res.statusText}`);
     return res.json();
 }
 
 // ===== PREGNANCIES =====
 export async function fetchPregnancies(userId, userEmail) {
     const res = await fetch(`${API_BASE}/api/pregnancies`, { headers: getHeaders(userId, userEmail) });
-    if (!res.ok) throw new Error('Failed to fetch pregnancies');
+    if (!res.ok) throw new Error(`Failed to fetch pregnancies: ${res.status} ${res.statusText}`);
     return res.json();
 }
 
@@ -129,7 +132,7 @@ export async function createPregnancy(userId, data, userEmail) {
         headers: getHeaders(userId, userEmail),
         body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error('Failed to create pregnancy');
+    if (!res.ok) throw new Error(`Failed to create pregnancy: ${res.status} ${res.statusText}`);
     return res.json();
 }
 
@@ -138,7 +141,7 @@ export async function deletePregnancy(userId, id, userEmail) {
         method: 'DELETE',
         headers: getHeaders(userId, userEmail),
     });
-    if (!res.ok) throw new Error('Failed to delete pregnancy');
+    if (!res.ok) throw new Error(`Failed to delete pregnancy: ${res.status} ${res.statusText}`);
     return res.json();
 }
 // ===== FIREBASE ID SYNC =====
@@ -148,7 +151,7 @@ export async function setFirebaseId(entity, userId, id, firebaseId, userEmail) {
         headers: getHeaders(userId, userEmail),
         body: JSON.stringify({ firebaseId }),
     });
-    if (!res.ok) console.warn(`Failed to set firebaseId for ${entity}/${id}`);
+    if (!res.ok) console.warn(`Failed to set firebaseId for ${entity}/${id}: ${res.status}`);
 }
 
 // ===== GEMINI CHATBOT =====
@@ -158,7 +161,14 @@ export async function chatWithAI(userId, message, userEmail) {
         headers: getHeaders(userId, userEmail),
         body: JSON.stringify({ message }),
     });
-    if (!res.ok) throw new Error('Failed to get response');
+    if (!res.ok) {
+        let errorMsg = `Failed to get response: ${res.status}`;
+        try {
+            const err = await res.json();
+            if (err.error) errorMsg += ` - ${err.error}`;
+        } catch (e) { }
+        throw new Error(errorMsg);
+    }
     return res.json();
 }
 
@@ -169,6 +179,6 @@ export async function migrateData(userId, data) {
         headers: getHeaders(userId),
         body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error('Migration failed');
+    if (!res.ok) throw new Error(`Migration failed: ${res.status} ${res.statusText}`);
     return res.json();
 }

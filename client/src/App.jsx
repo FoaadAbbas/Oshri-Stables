@@ -244,6 +244,20 @@ export default function App() {
                     />
                 )}
             </main>
+
+            {/* Mobile Bottom Navigation */}
+            <nav className="mobile-nav">
+                {TABS.map(tab => (
+                    <button
+                        key={tab.id}
+                        className={`mobile-nav-item ${activeTab === tab.id ? 'active' : ''}`}
+                        onClick={() => setActiveTab(tab.id)}
+                    >
+                        <span className="mobile-nav-icon">{tab.icon}</span>
+                        <span style={{ fontSize: '10px' }}>{tab.label.split(' ').slice(1).join(' ')}</span>
+                    </button>
+                ))}
+            </nav>
         </div>
     );
 }
