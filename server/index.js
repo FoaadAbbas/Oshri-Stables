@@ -48,6 +48,8 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'fuad1205@gmail.com')
     .split(',')
     .map(e => e.trim().toLowerCase());
 
+console.log('👷 Admin Emails Configured:', ADMIN_EMAILS);
+
 // Auth middleware - extract userId and admin email from headers
 const authMiddleware = (req, res, next) => {
     const userId = req.headers['x-user-id'];
@@ -58,6 +60,17 @@ const authMiddleware = (req, res, next) => {
     console.log(`👤 Auth: ${req.userEmail} (ID: ${userId}) -> Admin: ${req.isAdmin}`);
     next();
 };
+
+// ===== DEBUG CONFIG (REMOVE IN PRODUCTION IF SENSITIVE) =====
+app.get('/api/debug-config', (req, res) => {
+    res.json({
+        adminEmails: ADMIN_EMAILS,
+        hasGeminiKey: !!process.env.GEMINI_API_KEY,
+        geminiKeyLength: process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.length : 0,
+        port: PORT,
+        corsOrigin: process.env.CORS_ORIGIN
+    });
+});
 
 // ===== ADMIN CHECK =====
 app.get('/api/auth/check-admin', authMiddleware, (req, res) => {
@@ -241,8 +254,10 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
     try {
         const { message } = req.body;
         const apiKey = process.env.GEMINI_API_KEY;
+        console.log('🤖 Chat Request - Has API Key:', !!apiKey);
 
         if (!apiKey) {
+            console.error('❌ Gemini API key is missing in environment variables');
             return res.status(500).json({ error: 'Gemini API key not configured' });
         }
 
