@@ -151,6 +151,17 @@ export async function setFirebaseId(entity, userId, id, firebaseId, userEmail) {
     if (!res.ok) console.warn(`Failed to set firebaseId for ${entity}/${id}`);
 }
 
+// ===== GEMINI CHATBOT =====
+export async function chatWithAI(userId, message, userEmail) {
+    const res = await fetch(`${API_BASE}/api/chat`, {
+        method: 'POST',
+        headers: getHeaders(userId, userEmail),
+        body: JSON.stringify({ message }),
+    });
+    if (!res.ok) throw new Error('Failed to get response');
+    return res.json();
+}
+
 // ===== MIGRATION =====
 export async function migrateData(userId, data) {
     const res = await fetch(`${API_BASE}/api/migrate`, {

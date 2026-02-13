@@ -25,7 +25,7 @@ export default function Header({ user, isAdmin }) {
                 )}
             </div>
             <div className="header-left">
-                <span className="user-email">{user.email}</span>
+                <span className="user-email">{user.displayName || user.email}</span>
                 <button className="btn-icon" onClick={toggleTheme} title="החלף ערכת נושא">
                     {theme === 'dark' ? '☀️' : '🌙'}
                 </button>

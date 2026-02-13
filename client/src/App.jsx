@@ -9,6 +9,7 @@ import Visits from './components/Visits';
 import Vaccines from './components/Vaccines';
 import Pregnancy from './components/Pregnancy';
 import Notifications from './components/Notifications';
+import Chatbot from './components/Chatbot';
 import * as api from './api';
 
 const TABS = [
@@ -188,7 +189,9 @@ export default function App() {
         <div className="app">
             <Header user={user} isAdmin={isAdmin} />
 
-            <Notifications vaccines={vaccines} pregnancies={pregnancies} horses={horses} />
+            {/* <Notifications vaccines={vaccines} pregnancies={pregnancies} horses={horses} /> */}
+
+            <Chatbot userId={user.uid} userEmail={user.email} />
 
             <nav className="tabs">
                 {TABS.map(tab => (

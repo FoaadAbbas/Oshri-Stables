@@ -1,12 +1,15 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const cors = require('cors');
 const multer = require('multer');
-const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const db = require('./database');
 
 const app = express();
+
 const PORT = process.env.PORT || 5000;
 
 // Middleware
@@ -228,6 +231,53 @@ app.patch('/api/pregnancies/:id/firebase-id', authMiddleware, (req, res) => {
         db.setPregnancyFirebaseId(req.params.id, req.body.firebaseId);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ===== GEMINI CHATBOT =====
+app.post('/api/chat', authMiddleware, async (req, res) => {
+    try {
+        const { message } = req.body;
+        const apiKey = process.env.GEMINI_API_KEY;
+
+        if (!apiKey) {
+            return res.status(500).json({ error: 'Gemini API key not configured' });
+        }
+
+        // Fetch context data
+        const horses = req.isAdmin ? db.getAllHorses() : db.getHorses(req.userId);
+        const visits = db.getVisits(req.userId);
+        const vaccines = db.getVaccines(req.userId);
+        const pregnancies = db.getPregnancies(req.userId);
+
+        // Prepare context summary
+        const context = `
+Current Stable Data:
+- Horses: ${JSON.stringify(horses.map(h => ({ id: h.id, name: h.name, age: h.age, breed: h.breed, gender: h.gender })))}
+- Recent Visits: ${JSON.stringify(visits.slice(0, 10).map(v => ({ date: v.date, horseId: v.horseId, type: v.type, vet: v.vetName, notes: v.notes })))}
+- Upcoming Vaccines: ${JSON.stringify(vaccines.filter(v => v.nextDate).map(v => ({ date: v.date, nextDate: v.nextDate, horseId: v.horseId, type: v.type })))}
+- Active Pregnancies: ${JSON.stringify(pregnancies.filter(p => p.status !== 'הסתיים').map(p => ({ horseId: p.horseId, due: p.expectedDate, stallion: p.stallionName })))}
+
+User Question: ${message}
+
+System Instruction: You are an AI assistant for a horse stable management app. 
+Use the provided data to answer the user's question accurately. 
+If the answer isn't in the data, say you don't know. 
+Keep answers concise, professional, and helpful. 
+Respond in Hebrew unless asked otherwise.
+`;
+
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+        const result = await model.generateContent(context);
+        const response = await result.response;
+        const text = response.text();
+
+        res.json({ reply: text });
+    } catch (err) {
+        console.error('Chat error:', err);
+        res.status(500).json({ error: 'Failed to generate response' });
+    }
 });
 
 // ===== MIGRATION =====

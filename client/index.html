@@ -6,14 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>מערכת מעקב רפואי - חוות סוסים</title>
 
-    <!-- PWA Meta Tags -->
+    <!-- PWA Meta Tags (Manifest injected by Vite Plugin PWA) -->
     <meta name="description" content="מערכת מעקב רפואי לחוות סוסים - ביקורים, חיסונים, הריונות" />
-    <meta name="theme-color" content="#6366f1" />
+    <meta name="theme-color" content="#4f46e5" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="מעקב סוסים" />
-    <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
-    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-title" content="Oshri Stables" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,16 +24,6 @@
 <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <script>
-        // Register Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('✅ Service Worker registered'))
-                    .catch(err => console.warn('SW registration failed:', err));
-            });
-        }
-    </script>
 </body>
 
 </html>
