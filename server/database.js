@@ -70,18 +70,21 @@ const stmts = {
   deleteHorseAdmin: db.prepare('DELETE FROM horses WHERE id = ?'),
 
   getVisits: db.prepare('SELECT * FROM visits WHERE userId = ? ORDER BY date DESC'),
+  getAllVisits: db.prepare('SELECT * FROM visits ORDER BY date DESC'),
   getVisit: db.prepare('SELECT * FROM visits WHERE id = ? AND userId = ?'),
   addVisit: db.prepare('INSERT INTO visits (userId, firebaseId, horseId, date, vetName, type, notes) VALUES (?, ?, ?, ?, ?, ?, ?)'),
   deleteVisit: db.prepare('DELETE FROM visits WHERE id = ? AND userId = ?'),
   deleteVisitsByHorse: db.prepare('DELETE FROM visits WHERE horseId = ? AND userId = ?'),
 
   getVaccines: db.prepare('SELECT * FROM vaccines WHERE userId = ? ORDER BY date DESC'),
+  getAllVaccines: db.prepare('SELECT * FROM vaccines ORDER BY date DESC'),
   getVaccine: db.prepare('SELECT * FROM vaccines WHERE id = ? AND userId = ?'),
   addVaccine: db.prepare('INSERT INTO vaccines (userId, firebaseId, horseId, type, date, nextDate, notes) VALUES (?, ?, ?, ?, ?, ?, ?)'),
   deleteVaccine: db.prepare('DELETE FROM vaccines WHERE id = ? AND userId = ?'),
   deleteVaccinesByHorse: db.prepare('DELETE FROM vaccines WHERE horseId = ? AND userId = ?'),
 
   getPregnancies: db.prepare('SELECT * FROM pregnancies WHERE userId = ? ORDER BY createdAt DESC'),
+  getAllPregnancies: db.prepare('SELECT * FROM pregnancies ORDER BY createdAt DESC'),
   getPregnancy: db.prepare('SELECT * FROM pregnancies WHERE id = ? AND userId = ?'),
   addPregnancy: db.prepare('INSERT INTO pregnancies (userId, firebaseId, horseId, matingDate, stallionName, status, expectedDate) VALUES (?, ?, ?, ?, ?, ?, ?)'),
   deletePregnancy: db.prepare('DELETE FROM pregnancies WHERE id = ? AND userId = ?'),
@@ -147,6 +150,7 @@ module.exports = {
 
   // Visits
   getVisits(userId) { return stmts.getVisits.all(userId); },
+  getAllVisits() { return stmts.getAllVisits.all(); },
   addVisit(userId, { horseId, date, vetName, type, notes, firebaseId }) {
     const info = stmts.addVisit.run(userId, firebaseId || null, horseId, date, vetName, type, notes || null);
     return { id: info.lastInsertRowid, userId, firebaseId, horseId: parseInt(horseId), date, vetName, type, notes };
@@ -159,6 +163,7 @@ module.exports = {
 
   // Vaccines
   getVaccines(userId) { return stmts.getVaccines.all(userId); },
+  getAllVaccines() { return stmts.getAllVaccines.all(); },
   addVaccine(userId, { horseId, type, date, nextDate, notes, firebaseId }) {
     const info = stmts.addVaccine.run(userId, firebaseId || null, horseId, type, date, nextDate || null, notes || null);
     return { id: info.lastInsertRowid, userId, firebaseId, horseId: parseInt(horseId), type, date, nextDate, notes };
@@ -171,6 +176,7 @@ module.exports = {
 
   // Pregnancies
   getPregnancies(userId) { return stmts.getPregnancies.all(userId); },
+  getAllPregnancies() { return stmts.getAllPregnancies.all(); },
   addPregnancy(userId, { horseId, matingDate, stallionName, status, expectedDate, firebaseId }) {
     const info = stmts.addPregnancy.run(userId, firebaseId || null, horseId, matingDate, stallionName, status, expectedDate);
     return { id: info.lastInsertRowid, userId, firebaseId, horseId: parseInt(horseId), matingDate, stallionName, status, expectedDate };

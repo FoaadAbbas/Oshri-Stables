@@ -206,8 +206,10 @@ app.delete('/api/horses/:id', authMiddleware, (req, res) => {
 
 // ===== VISITS =====
 app.get('/api/visits', authMiddleware, (req, res) => {
-    try { res.json(db.getVisits(req.userId)); }
-    catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        const visits = req.isAdmin ? db.getAllVisits() : db.getVisits(req.userId);
+        res.json(visits);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/visits', authMiddleware, (req, res) => {
@@ -226,8 +228,10 @@ app.delete('/api/visits/:id', authMiddleware, (req, res) => {
 
 // ===== VACCINES =====
 app.get('/api/vaccines', authMiddleware, (req, res) => {
-    try { res.json(db.getVaccines(req.userId)); }
-    catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        const vaccines = req.isAdmin ? db.getAllVaccines() : db.getVaccines(req.userId);
+        res.json(vaccines);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/vaccines', authMiddleware, (req, res) => {
@@ -246,8 +250,10 @@ app.delete('/api/vaccines/:id', authMiddleware, (req, res) => {
 
 // ===== PREGNANCIES =====
 app.get('/api/pregnancies', authMiddleware, (req, res) => {
-    try { res.json(db.getPregnancies(req.userId)); }
-    catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        const pregnancies = req.isAdmin ? db.getAllPregnancies() : db.getPregnancies(req.userId);
+        res.json(pregnancies);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/pregnancies', authMiddleware, (req, res) => {
