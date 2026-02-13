@@ -187,7 +187,7 @@ export default function App() {
 
     return (
         <div className="app">
-            <Header user={user} isAdmin={isAdmin} />
+            <Header user={user} isAdmin={isAdmin} onRefresh={loadData} />
 
             {/* <Notifications vaccines={vaccines} pregnancies={pregnancies} horses={horses} /> */}
 
@@ -210,6 +210,9 @@ export default function App() {
                 {activeTab === 'horses' && (
                     <HorseList
                         horses={horses}
+                        visits={visits}
+                        vaccines={vaccines}
+                        pregnancies={pregnancies}
                         userId={user.uid}
                         userEmail={user.email}
                         isAdmin={isAdmin}
