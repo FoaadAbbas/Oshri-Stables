@@ -44,15 +44,18 @@ const upload = multer({
 });
 
 // Admin config
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'fuad1205@gmail.com').split(',').map(e => e.trim());
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'fuad1205@gmail.com')
+    .split(',')
+    .map(e => e.trim().toLowerCase());
 
 // Auth middleware - extract userId and admin email from headers
 const authMiddleware = (req, res, next) => {
     const userId = req.headers['x-user-id'];
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
     req.userId = userId;
-    req.userEmail = req.headers['x-user-email'] || '';
+    req.userEmail = (req.headers['x-user-email'] || '').toLowerCase();
     req.isAdmin = ADMIN_EMAILS.includes(req.userEmail);
+    console.log(`👤 Auth: ${req.userEmail} (ID: ${userId}) -> Admin: ${req.isAdmin}`);
     next();
 };
 
