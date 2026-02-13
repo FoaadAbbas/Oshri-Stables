@@ -136,7 +136,13 @@ export default function HorseList({ horses, userId, userEmail, isAdmin, onRefres
                                 <div className="horse-card-placeholder">🐴</div>
                             )}
                             <div className="horse-card-body">
-                                <div className="horse-card-name">{horse.name}</div>
+                                <div className="horse-card-name" style={{ marginBottom: 4 }}>{horse.name}</div>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', marginBottom: 12 }}>
+                                    {horse.fatherName && <span>אב: {horse.fatherName} </span>}
+                                    {horse.fatherName && horse.motherName && <span> | </span>}
+                                    {horse.motherName && <span>אם: {horse.motherName}</span>}
+                                </div>
+
                                 <div className="horse-card-info">
                                     <div className="horse-card-info-item">
                                         <span>גיל</span>
@@ -155,6 +161,11 @@ export default function HorseList({ horses, userId, userEmail, isAdmin, onRefres
                                     <button className="btn btn-edit btn-sm" onClick={() => handleEdit(horse)}>
                                         ✎ ערוך
                                     </button>
+                                    {horse.certImage && (
+                                        <a href={getImageUrl(horse.certImage)} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+                                            📜 תעודה
+                                        </a>
+                                    )}
                                     <button className="btn btn-danger btn-sm" onClick={() => handleDelete(horse.id)}>
                                         ✕ מחק
                                     </button>

@@ -103,35 +103,63 @@ app.get('/api/horses', authMiddleware, (req, res) => {
     }
 });
 
-app.post('/api/horses', authMiddleware, upload.single('image'), (req, res) => {
+app.post('/api/horses', authMiddleware, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'certImage', maxCount: 1 }]), (req, res) => {
     try {
-        const { name, age, breed, gender } = req.body;
-        const image = req.file ? req.file.filename : null;
-        const horse = db.addHorse(req.userId, { name, age: parseInt(age), breed, gender, image });
+        const { name, age, breed, gender, fatherName, motherName } = req.body;
+        const image = req.files['image'] ? req.files['image'][0].filename : null;
+        const certImage = req.files['certImage'] ? req.files['certImage'][0].filename : null;
+
+        const horse = db.addHorse(req.userId, {
+            name,
+            age: parseInt(age),
+            breed,
+            gender,
+            image,
+            fatherName,
+            motherName,
+            certImage
+        });
         res.status(201).json(horse);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-app.put('/api/horses/:id', authMiddleware, upload.single('image'), (req, res) => {
+app.put('/api/horses/:id', authMiddleware, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'certImage', maxCount: 1 }]), (req, res) => {
     try {
-        const { name, age, breed, gender } = req.body;
+        const { name, age, breed, gender, fatherName, motherName } = req.body;
         const existing = db.getHorse(req.params.id, req.userId);
         if (!existing) return res.status(404).json({ error: 'Horse not found' });
 
         let image = existing.image;
-        if (req.file) {
+        if (req.files && req.files['image']) {
             // Delete old image
             if (existing.image) {
                 const oldPath = path.join(uploadsDir, existing.image);
                 if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
             }
-            image = req.file.filename;
+            image = req.files['image'][0].filename;
+        }
+
+        let certImage = existing.certImage;
+        if (req.files && req.files['certImage']) {
+            // Delete old certificate
+            if (existing.certImage) {
+                const oldPath = path.join(uploadsDir, existing.certImage);
+                if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+            }
+            certImage = req.files['certImage'][0].filename;
         }
 
         const horse = db.updateHorse(req.params.id, req.userId, {
-            name, age: parseInt(age), breed, gender, image
+            name,
+            age: parseInt(age),
+            breed,
+            gender,
+            image,
+            fatherName,
+            motherName,
+            certImage
         });
         res.json(horse);
     } catch (err) {
@@ -286,18 +314,29 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
         // Prepare context summary
         const context = `
 Current Stable Data:
-- Horses: ${JSON.stringify(horses.map(h => ({ id: h.id, name: h.name, age: h.age, breed: h.breed, gender: h.gender })))}
+- Horses: ${JSON.stringify(horses.map(h => ({
+            id: h.id,
+            name: h.name,
+            age: h.age,
+            breed: h.breed,
+            gender: h.gender,
+            father: h.fatherName || 'Unknown',
+            mother: h.motherName || 'Unknown'
+        })))}
 - Recent Visits: ${JSON.stringify(visits.slice(0, 10).map(v => ({ date: v.date, horseId: v.horseId, type: v.type, vet: v.vetName, notes: v.notes })))}
 - Upcoming Vaccines: ${JSON.stringify(vaccines.filter(v => v.nextDate).map(v => ({ date: v.date, nextDate: v.nextDate, horseId: v.horseId, type: v.type })))}
 - Active Pregnancies: ${JSON.stringify(pregnancies.filter(p => p.status !== 'הסתיים').map(p => ({ horseId: p.horseId, due: p.expectedDate, stallion: p.stallionName })))}
 
 User Question: ${message}
 
-System Instruction: You are an AI assistant for a horse stable management app. 
-Use the provided data to answer the user's question accurately. 
-If the answer isn't in the data, say you don't know. 
-Keep answers concise, professional, and helpful. 
-Respond in Hebrew unless asked otherwise.
+System Instruction: You are an expert equine veterinary assistant and stable manager AI for "Oshri Stables".
+Your role is to provide professional, accurate, and helpful insights based on the stable's data.
+- Tone: Professional, authoritative yet accessible, and veterinary-focused.
+- Data Usage: Always check the provided data for specific horse details (age, breed, lineage, medical history).
+- Lineage: If asked about a horse, mention their parents (Father/Mother) if recorded.
+- Limitations: If the answer is not in the data, state clearly that you don't have that information in the records. Do not hallucinate data.
+- Formatting: Use bullet points for lists and keep paragraphs concise.
+- Language: Respond in Hebrew unless asked otherwise.
 `;
 
         const genAI = new GoogleGenerativeAI(apiKey);

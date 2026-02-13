@@ -15,6 +15,9 @@ db.exec(`
     breed TEXT NOT NULL,
     gender TEXT NOT NULL,
     image TEXT,
+    fatherName TEXT,
+    motherName TEXT,
+    certImage TEXT,
     createdAt TEXT DEFAULT (datetime('now'))
   );
 
@@ -61,8 +64,8 @@ const stmts = {
   getAllHorses: db.prepare('SELECT * FROM horses ORDER BY createdAt DESC'),
   getHorse: db.prepare('SELECT * FROM horses WHERE id = ? AND userId = ?'),
   getHorseAny: db.prepare('SELECT * FROM horses WHERE id = ?'),
-  addHorse: db.prepare('INSERT INTO horses (userId, firebaseId, name, age, breed, gender, image) VALUES (?, ?, ?, ?, ?, ?, ?)'),
-  updateHorse: db.prepare('UPDATE horses SET name = ?, age = ?, breed = ?, gender = ?, image = ? WHERE id = ? AND userId = ?'),
+  addHorse: db.prepare('INSERT INTO horses (userId, firebaseId, name, age, breed, gender, image, fatherName, motherName, certImage) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'),
+  updateHorse: db.prepare('UPDATE horses SET name = ?, age = ?, breed = ?, gender = ?, image = ?, fatherName = ?, motherName = ?, certImage = ? WHERE id = ? AND userId = ?'),
   deleteHorse: db.prepare('DELETE FROM horses WHERE id = ? AND userId = ?'),
   deleteHorseAdmin: db.prepare('DELETE FROM horses WHERE id = ?'),
 
@@ -110,13 +113,13 @@ module.exports = {
   getHorseAny(id) {
     return stmts.getHorseAny.get(id);
   },
-  addHorse(userId, { name, age, breed, gender, image, firebaseId }) {
-    const info = stmts.addHorse.run(userId, firebaseId || null, name, age, breed, gender, image || null);
-    return { id: info.lastInsertRowid, userId, firebaseId, name, age, breed, gender, image };
+  addHorse(userId, { name, age, breed, gender, image, fatherName, motherName, certImage, firebaseId }) {
+    const info = stmts.addHorse.run(userId, firebaseId || null, name, age, breed, gender, image || null, fatherName || null, motherName || null, certImage || null);
+    return { id: info.lastInsertRowid, userId, firebaseId, name, age, breed, gender, image, fatherName, motherName, certImage };
   },
-  updateHorse(id, userId, { name, age, breed, gender, image }) {
-    stmts.updateHorse.run(name, age, breed, gender, image || null, id, userId);
-    return { id: parseInt(id), userId, name, age, breed, gender, image };
+  updateHorse(id, userId, { name, age, breed, gender, image, fatherName, motherName, certImage }) {
+    stmts.updateHorse.run(name, age, breed, gender, image || null, fatherName || null, motherName || null, certImage || null, id, userId);
+    return { id: parseInt(id), userId, name, age, breed, gender, image, fatherName, motherName, certImage };
   },
   deleteHorse(id, userId) {
     const horse = stmts.getHorse.get(id, userId);

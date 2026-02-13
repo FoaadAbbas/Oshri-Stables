@@ -6,15 +6,22 @@ export default function HorseForm({ horse, onSubmit, onClose }) {
     const [age, setAge] = useState(horse?.age || '');
     const [breed, setBreed] = useState(horse?.breed || '');
     const [gender, setGender] = useState(horse?.gender || 'זכר');
+    const [fatherName, setFatherName] = useState(horse?.fatherName || '');
+    const [motherName, setMotherName] = useState(horse?.motherName || '');
     const [imageFile, setImageFile] = useState(null);
+    const [certFile, setCertFile] = useState(null);
     const [preview, setPreview] = useState(
         horse?.image ? getImageUrl(horse.image) : null
+    );
+    const [certPreview, setCertPreview] = useState(
+        horse?.certImage ? getImageUrl(horse.certImage) : null
     );
     const [loading, setLoading] = useState(false);
     const fileInputRef = useRef(null);
     const cameraInputRef = useRef(null);
+    const certInputRef = useRef(null);
 
-    const handleFileChange = (e) => {
+    const handleFileChange = (e, type = 'image') => {
         const file = e.target.files[0];
         if (!file) return;
 
@@ -23,9 +30,14 @@ export default function HorseForm({ horse, onSubmit, onClose }) {
             return;
         }
 
-        setImageFile(file);
         const reader = new FileReader();
-        reader.onload = (ev) => setPreview(ev.target.result);
+        if (type === 'image') {
+            setImageFile(file);
+            reader.onload = (ev) => setPreview(ev.target.result);
+        } else {
+            setCertFile(file);
+            reader.onload = (ev) => setCertPreview(ev.target.result);
+        }
         reader.readAsDataURL(file);
     };
 
@@ -42,8 +54,14 @@ export default function HorseForm({ horse, onSubmit, onClose }) {
         formData.append('age', age);
         formData.append('breed', breed);
         formData.append('gender', gender);
+        if (fatherName) formData.append('fatherName', fatherName);
+        if (motherName) formData.append('motherName', motherName);
+
         if (imageFile) {
             formData.append('image', imageFile);
+        }
+        if (certFile) {
+            formData.append('certImage', certFile);
         }
 
         await onSubmit(formData);
@@ -87,7 +105,7 @@ export default function HorseForm({ horse, onSubmit, onClose }) {
                             ref={fileInputRef}
                             type="file"
                             accept="image/*"
-                            onChange={handleFileChange}
+                            onChange={(e) => handleFileChange(e, 'image')}
                             style={{ display: 'none' }}
                         />
                         <input
@@ -95,7 +113,7 @@ export default function HorseForm({ horse, onSubmit, onClose }) {
                             type="file"
                             accept="image/*"
                             capture="environment"
-                            onChange={handleFileChange}
+                            onChange={(e) => handleFileChange(e, 'image')}
                             style={{ display: 'none' }}
                         />
                     </div>
@@ -138,6 +156,52 @@ export default function HorseForm({ horse, onSubmit, onClose }) {
                                 <option value="נקבה">נקבה</option>
                             </select>
                         </div>
+                        <div className="form-group">
+                            <label>שם האב</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                value={fatherName}
+                                onChange={e => setFatherName(e.target.value)}
+                                placeholder="שם האב"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>שם האם</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                value={motherName}
+                                onChange={e => setMotherName(e.target.value)}
+                                placeholder="שם האם"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Certificate Upload */}
+                    <div className="form-group" style={{ marginBottom: 20 }}>
+                        <label>תעודת הסוס</label>
+                        <div
+                            className={`image-upload-area ${certPreview ? 'has-image' : ''}`}
+                            onClick={() => certInputRef.current?.click()}
+                            style={{ padding: '16px' }}
+                        >
+                            {certPreview ? (
+                                <img src={certPreview} alt="תצוגה מקדימה" className="image-preview" style={{ maxHeight: '150px' }} />
+                            ) : (
+                                <div className="image-upload-text">
+                                    <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>📜</div>
+                                    <span style={{ fontSize: '0.9rem' }}>לחץ להעלאת תעודה</span>
+                                </div>
+                            )}
+                        </div>
+                        <input
+                            ref={certInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileChange(e, 'cert')}
+                            style={{ display: 'none' }}
+                        />
                     </div>
 
                     <div className="modal-actions">
