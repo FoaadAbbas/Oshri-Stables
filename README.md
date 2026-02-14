@@ -13,15 +13,20 @@ Welcome to **Oshri Stables** – a comprehensive and intelligent platform design
 
 ## 📸 Gallery
 
-*(Please replace the links below with actual screenshots from your application)*
+<p align="center">
+  <img src="./images/dashboard.png" width="45%" alt="Dashboard" />
+  <img src="./images/horse_list.png" width="45%" alt="Horse List" />
+</p>
 
-| Dashboard Overview | Horse Profile & Treatments |
-|:-------------------------:|:-------------------------:|
-| ![Dashboard](https://via.placeholder.com/400x200?text=Dashboard+Screen) | ![Horse Profile](https://via.placeholder.com/400x200?text=Horse+Profile) |
+<p align="center">
+  <img src="./images/horse_profile.png" width="45%" alt="Horse Profile" />
+  <img src="./images/pregnancy.png" width="45%" alt="Pregnancy Tracker" />
+</p>
 
-| Pregnancy Tracker | AI Assistant Chatbot |
-|:-------------------------:|:-------------------------:|
-| ![Pregnancy](https://via.placeholder.com/400x200?text=Pregnancy+Tracker) | ![AI Chatbot](https://via.placeholder.com/400x200?text=AI+Chatbot) |
+<p align="center">
+  <img src="./images/timeline.png" width="45%" alt="Timeline" />
+  <img src="./images/chatbot.png" width="45%" alt="AI Chatbot" />
+</p>|
 
 ---
 
