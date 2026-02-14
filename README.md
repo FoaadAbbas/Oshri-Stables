@@ -1,47 +1,67 @@
+# 🐴 Oshri Stables Management System
 
-🐴 Oshri Stables Management System
-Welcome to Oshri Stables – a comprehensive and intelligent platform designed for managing horse stables. This system streamlines the tracking of horse health, medical treatments, pregnancies, and daily stable activities through a modern, responsive interface optimized for both desktop and mobile devices.
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![React](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB)
+![Node](https://img.shields.io/badge/Backend-Node.js%20%2B%20Express-339933)
+![Database](https://img.shields.io/badge/Database-SQLite-003B57)
+![AI](https://img.shields.io/badge/AI-Gemini%20Powered-8E75B2)
+![PWA](https://img.shields.io/badge/Mobile-PWA%20Supported-purple)
 
-📸 Gallery
-(Please replace the links below with actual screenshots from your application)
+Welcome to **Oshri Stables** – a comprehensive and intelligent platform designed for managing horse stables. This system streamlines the tracking of horse health, medical treatments, pregnancies, and daily stable activities through a modern, responsive interface optimized for both desktop and mobile devices.
 
-Dashboard Overview	Horse Profile & Treatments
-Pregnancy Tracker	AI Assistant Chatbot
-🎥 Video Tutorial
-Watch a short demonstration of how to manage your stable, add horses, and use the smart assistant:
+---
 
-🚀 Key Features
-Complete Medical Records: Track vaccinations, deworming schedules, and veterinary visits for every horse.
+## 📸 Gallery
 
-Pregnancy Management: Monitor ultrasounds, breeding dates, and expected foaling dates with detailed logs.
+*(Please replace the links below with actual screenshots from your application)*
 
-Smart Assistant (Gemini AI): An integrated chatbot that allows you to ask questions about your stable data and receive instant insights.
+| Dashboard Overview | Horse Profile & Treatments |
+|:-------------------------:|:-------------------------:|
+| ![Dashboard](https://via.placeholder.com/400x200?text=Dashboard+Screen) | ![Horse Profile](https://via.placeholder.com/400x200?text=Horse+Profile) |
 
-Visual Timeline: View a chronological history of all events and treatments for each horse.
+| Pregnancy Tracker | AI Assistant Chatbot |
+|:-------------------------:|:-------------------------:|
+| ![Pregnancy](https://via.placeholder.com/400x200?text=Pregnancy+Tracker) | ![AI Chatbot](https://via.placeholder.com/400x200?text=AI+Chatbot) |
 
-Mobile Optimized (PWA): Install the app directly on your mobile device for native-like performance and offline capabilities.
+---
 
-Dashboard Analytics: Real-time statistics on stable demographics and health status.
+## 🎥 Video Tutorial
+Watch a short demonstration of the system in action:
 
-File Management: Upload and store images and documents for each horse securely.
+![Video Tutorial](https://github.com/user-attachments/assets/9fd6ab46-ad2e-451d-bf71-f1feacd1d01f)
 
-🛠 Tech Stack
+---
+
+## 🚀 Key Features
+
+* **Complete Medical Records:** Track vaccinations, deworming schedules, and veterinary visits for every horse.
+* **Pregnancy Management:** Monitor ultrasounds, breeding dates, and expected foaling dates with detailed logs.
+* **Smart Assistant (Gemini AI):** An integrated chatbot that allows you to ask questions about your stable data and receive instant insights.
+* **Visual Timeline:** View a chronological history of all events and treatments for each horse.
+* **Mobile Optimized (PWA):** Install the app directly on your mobile device for native-like performance and offline capabilities.
+* **Dashboard Analytics:** Real-time statistics on stable demographics and health status.
+* **File Management:** Upload and store images and documents for each horse securely.
+
+---
+
+## 🛠 Tech Stack
+
 This project is built using modern web technologies to ensure performance and scalability:
 
-Frontend: React, Vite, TailwindCSS, Firebase (Authentication), PWA Plugin.
+* **Frontend:** React, Vite, TailwindCSS, Firebase (Authentication), PWA Plugin.
+* **Backend:** Node.js, Express.
+* **Database:** Better-SQLite3 (Fast, serverless SQL engine).
+* **AI Integration:** Google Generative AI (Gemini).
 
-Backend: Node.js, Express.
+---
 
-Database: Better-SQLite3 (Fast, serverless SQL engine).
+## ⚙️ Installation & Setup
 
-AI Integration: Google Generative AI (Gemini).
-
-⚙️ Installation & Setup
 Follow these steps to run the project locally:
 
-1. Clone the Repository
-Bash
-git clone https://github.com/foaadabbas/oshri-stables.git
+### 1. Clone the Repository
+```bash
+git clone [https://github.com/foaadabbas/oshri-stables.git](https://github.com/foaadabbas/oshri-stables.git)
 cd oshri-stables
 2. Backend Setup
 The server handles the database and API requests.
