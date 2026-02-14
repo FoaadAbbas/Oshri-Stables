@@ -1,4 +1,3 @@
-מעולה. הנה קובץ ה-README.md המלא באנגלית, לאחר שעדכנתי את קישור הסרטון/תמונה ששלחת במקום המתאים.
 
 🐴 Oshri Stables Management System
 Welcome to Oshri Stables – a comprehensive and intelligent platform designed for managing horse stables. This system streamlines the tracking of horse health, medical treatments, pregnancies, and daily stable activities through a modern, responsive interface optimized for both desktop and mobile devices.
