@@ -267,7 +267,9 @@ app.put('/api/pregnancies/:id', authMiddleware, (req, res) => {
     try {
         const { status } = req.body;
         if (!status) return res.status(400).json({ error: 'Status is required' });
-        const updated = db.updatePregnancyStatus(req.params.id, req.userId, status);
+        const updated = req.isAdmin
+            ? db.updatePregnancyStatusAdmin(req.params.id, status)
+            : db.updatePregnancyStatus(req.params.id, req.userId, status);
         if (!updated) return res.status(404).json({ error: 'Pregnancy not found' });
         res.json(updated);
     } catch (err) { res.status(500).json({ error: err.message }); }

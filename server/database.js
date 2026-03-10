@@ -89,6 +89,8 @@ const stmts = {
   addPregnancy: db.prepare('INSERT INTO pregnancies (userId, firebaseId, horseId, matingDate, stallionName, status, expectedDate) VALUES (?, ?, ?, ?, ?, ?, ?)'),
   deletePregnancy: db.prepare('DELETE FROM pregnancies WHERE id = ? AND userId = ?'),
   updatePregnancyStatus: db.prepare('UPDATE pregnancies SET status = ? WHERE id = ? AND userId = ?'),
+  updatePregnancyStatusAdmin: db.prepare('UPDATE pregnancies SET status = ? WHERE id = ?'),
+  getPregnancyAny: db.prepare('SELECT * FROM pregnancies WHERE id = ?'),
   deletePregnanciesByHorse: db.prepare('DELETE FROM pregnancies WHERE horseId = ? AND userId = ?'),
 
   getVisitsByHorse: db.prepare('SELECT * FROM visits WHERE horseId = ?'),
@@ -185,6 +187,10 @@ module.exports = {
   updatePregnancyStatus(id, userId, status) {
     stmts.updatePregnancyStatus.run(status, id, userId);
     return stmts.getPregnancy.get(id, userId);
+  },
+  updatePregnancyStatusAdmin(id, status) {
+    stmts.updatePregnancyStatusAdmin.run(status, id);
+    return stmts.getPregnancyAny.get(id);
   },
   deletePregnancy(id, userId) {
     const pregnancy = stmts.getPregnancy.get(id, userId);
