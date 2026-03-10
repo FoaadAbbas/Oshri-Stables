@@ -136,6 +136,16 @@ export async function createPregnancy(userId, data, userEmail) {
     return res.json();
 }
 
+export async function updatePregnancyStatus(userId, id, status, userEmail) {
+    const res = await fetch(`${API_BASE}/api/pregnancies/${id}`, {
+        method: 'PUT',
+        headers: getHeaders(userId, userEmail),
+        body: JSON.stringify({ status }),
+    });
+    if (!res.ok) throw new Error(`Failed to update pregnancy: ${res.status} ${res.statusText}`);
+    return res.json();
+}
+
 export async function deletePregnancy(userId, id, userEmail) {
     const res = await fetch(`${API_BASE}/api/pregnancies/${id}`, {
         method: 'DELETE',

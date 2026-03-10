@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { doc, deleteDoc, addDoc, collection } from 'firebase/firestore';
+import { doc, deleteDoc, addDoc, collection, updateDoc } from 'firebase/firestore';
 import { firestoreDb } from '../firebase';
 import * as api from '../api';
 
@@ -7,10 +7,12 @@ export default function Pregnancy({ pregnancies, horses, userId, userEmail, onRe
     const [horseId, setHorseId] = useState('');
     const [matingDate, setMatingDate] = useState('');
     const [stallionName, setStallionName] = useState('');
-    const [status, setStatus] = useState('מאושר');
+    const [status, setStatus] = useState('לא מאושר');
     const [loading, setLoading] = useState(false);
 
     const femaleHorses = horses.filter(h => h.gender === 'נקבה');
+
+    const statusOptions = ['לא מאושר', 'מאושר', 'בהמתנה לאישור', 'הסתיים'];
 
     const calculateExpectedDate = (mDate) => {
         const d = new Date(mDate);
@@ -45,6 +47,21 @@ export default function Pregnancy({ pregnancies, horses, userId, userEmail, onRe
             alert('שגיאה בשמירת ההריון');
         }
         setLoading(false);
+    };
+
+    const handleStatusChange = async (pregnancyId, newStatus, firebaseId) => {
+        try {
+            await api.updatePregnancyStatus(userId, pregnancyId, newStatus, userEmail);
+            // Sync to Firebase
+            if (firebaseId) {
+                try {
+                    await updateDoc(doc(firestoreDb, 'pregnancies', firebaseId), { status: newStatus });
+                } catch (e) { console.warn('Firebase sync failed:', e); }
+            }
+            onRefresh();
+        } catch (err) {
+            alert('שגיאה בעדכון סטטוס');
+        }
     };
 
     const handleDelete = async (id) => {
@@ -85,9 +102,7 @@ export default function Pregnancy({ pregnancies, horses, userId, userEmail, onRe
                         <div className="form-group">
                             <label>סטטוס</label>
                             <select className="form-select" value={status} onChange={e => setStatus(e.target.value)}>
-                                <option value="מאושר">מאושר</option>
-                                <option value="בהמתנה לאישור">בהמתנה לאישור</option>
-                                <option value="הסתיים">הסתיים</option>
+                                {statusOptions.map(s => <option key={s} value={s}>{s}</option>)}
                             </select>
                         </div>
                     </div>
@@ -132,7 +147,13 @@ export default function Pregnancy({ pregnancies, horses, userId, userEmail, onRe
                                     </div>
                                     <div className="info-item">
                                         <strong>סטטוס</strong>
-                                        <span>{pregnancy.status}</span>
+                                        <select
+                                            className="form-select"
+                                            value={pregnancy.status}
+                                            onChange={e => handleStatusChange(pregnancy.id, e.target.value, pregnancy.firebaseId)}
+                                        >
+                                            {statusOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                                        </select>
                                     </div>
                                     <div className="info-item">
                                         <strong>ימים בהריון</strong>

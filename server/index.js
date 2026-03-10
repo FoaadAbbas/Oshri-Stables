@@ -263,6 +263,16 @@ app.post('/api/pregnancies', authMiddleware, (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+app.put('/api/pregnancies/:id', authMiddleware, (req, res) => {
+    try {
+        const { status } = req.body;
+        if (!status) return res.status(400).json({ error: 'Status is required' });
+        const updated = db.updatePregnancyStatus(req.params.id, req.userId, status);
+        if (!updated) return res.status(404).json({ error: 'Pregnancy not found' });
+        res.json(updated);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.delete('/api/pregnancies/:id', authMiddleware, (req, res) => {
     try {
         const deleted = db.deletePregnancy(req.params.id, req.userId);
