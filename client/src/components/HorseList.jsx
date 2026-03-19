@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { doc, deleteDoc, addDoc, updateDoc, collection } from 'firebase/firestore';
 import { firestoreDb } from '../firebase';
+import { deleteImage } from '../firebaseStorage';
 import HorseForm from './HorseForm';
 import HorseTimeline from './HorseTimeline';
 import * as api from '../api';
-import { getImageUrl } from '../api';
 
 export default function HorseList({ horses, visits, vaccines, pregnancies, userId, userEmail, isAdmin, onRefresh }) {
     const [showForm, setShowForm] = useState(false);
@@ -27,7 +27,14 @@ export default function HorseList({ horses, visits, vaccines, pregnancies, userI
     const handleDelete = async (id) => {
         if (!confirm('האם אתה בטוח שברצונך למחוק את הסוס? פעולה זו תמחק גם את כל הנתונים המשויכים אליו.')) return;
         try {
+            // Find the horse to get image URLs for cleanup
+            const horseToDelete = horses.find(h => h.id === id);
+            
             const result = await api.deleteHorse(userId, id, userEmail);
+
+            // Delete images from Firebase Storage
+            if (horseToDelete?.image) deleteImage(horseToDelete.image);
+            if (horseToDelete?.certImage) deleteImage(horseToDelete.certImage);
 
             if (result.firebaseId) {
                 try {
@@ -68,10 +75,10 @@ export default function HorseList({ horses, visits, vaccines, pregnancies, userI
         setEditHorse(null);
     };
 
-    const handleFormSubmit = async (formData) => {
+    const handleFormSubmit = async (data) => {
         try {
             if (editHorse) {
-                const updated = await api.updateHorse(userId, editHorse.id, formData, userEmail);
+                const updated = await api.updateHorse(userId, editHorse.id, data, userEmail);
                 if (editHorse.firebaseId) {
                     try {
                         await updateDoc(doc(firestoreDb, 'horses', editHorse.firebaseId), {
@@ -83,7 +90,7 @@ export default function HorseList({ horses, visits, vaccines, pregnancies, userI
                     } catch (e) { console.warn('Firebase update failed:', e); }
                 }
             } else {
-                const created = await api.createHorse(userId, formData, userEmail);
+                const created = await api.createHorse(userId, data, userEmail);
                 try {
                     const docRef = await addDoc(collection(firestoreDb, 'horses'), {
                         userId,
@@ -159,7 +166,7 @@ export default function HorseList({ horses, visits, vaccines, pregnancies, userI
                         <div key={horse.id} className="horse-card">
                             {horse.image ? (
                                 <img
-                                    src={getImageUrl(horse.image)}
+                                    src={horse.image}
                                     alt={horse.name}
                                     className="horse-card-image"
                                 />
@@ -196,7 +203,7 @@ export default function HorseList({ horses, visits, vaccines, pregnancies, userI
                                         ⏳
                                     </button>
                                     {horse.certImage && (
-                                        <a href={getImageUrl(horse.certImage)} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }} title="תעודה">
+                                        <a href={horse.certImage} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }} title="תעודה">
                                             📜
                                         </a>
                                     )}

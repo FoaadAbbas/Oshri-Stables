@@ -3,16 +3,12 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const cors = require('cors');
-const multer = require('multer');
-const fs = require('fs');
-const { v4: uuidv4 } = require('uuid');
 const db = require('./database');
 
 const app = express();
 
 const PORT = process.env.PORT || 5000;
 
-// Middleware
 // Middleware
 const allowedOrigins = (process.env.CORS_ORIGIN || '*')
     .split(',')
@@ -34,30 +30,6 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json({ limit: '15mb' }));
-
-// Static files for uploaded images
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-}
-app.use('/uploads', express.static(uploadsDir));
-
-// Multer config for image uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, uploadsDir),
-    filename: (req, file, cb) => {
-        const ext = path.extname(file.originalname);
-        cb(null, `${uuidv4()}${ext}`);
-    }
-});
-const upload = multer({
-    storage,
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/')) cb(null, true);
-        else cb(new Error('Only image files are allowed'));
-    }
-});
 
 // Admin config
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'fuad1205@gmail.com')
@@ -103,21 +75,19 @@ app.get('/api/horses', authMiddleware, (req, res) => {
     }
 });
 
-app.post('/api/horses', authMiddleware, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'certImage', maxCount: 1 }]), (req, res) => {
+app.post('/api/horses', authMiddleware, (req, res) => {
     try {
-        const { name, age, breed, gender, fatherName, motherName } = req.body;
-        const image = req.files['image'] ? req.files['image'][0].filename : null;
-        const certImage = req.files['certImage'] ? req.files['certImage'][0].filename : null;
+        const { name, age, breed, gender, fatherName, motherName, image, certImage } = req.body;
 
         const horse = db.addHorse(req.userId, {
             name,
             age: parseInt(age),
             breed,
             gender,
-            image,
+            image: image || null,
             fatherName,
             motherName,
-            certImage
+            certImage: certImage || null
         });
         res.status(201).json(horse);
     } catch (err) {
@@ -125,41 +95,21 @@ app.post('/api/horses', authMiddleware, upload.fields([{ name: 'image', maxCount
     }
 });
 
-app.put('/api/horses/:id', authMiddleware, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'certImage', maxCount: 1 }]), (req, res) => {
+app.put('/api/horses/:id', authMiddleware, (req, res) => {
     try {
-        const { name, age, breed, gender, fatherName, motherName } = req.body;
+        const { name, age, breed, gender, fatherName, motherName, image, certImage } = req.body;
         const existing = db.getHorse(req.params.id, req.userId);
         if (!existing) return res.status(404).json({ error: 'Horse not found' });
-
-        let image = existing.image;
-        if (req.files && req.files['image']) {
-            // Delete old image
-            if (existing.image) {
-                const oldPath = path.join(uploadsDir, existing.image);
-                if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-            }
-            image = req.files['image'][0].filename;
-        }
-
-        let certImage = existing.certImage;
-        if (req.files && req.files['certImage']) {
-            // Delete old certificate
-            if (existing.certImage) {
-                const oldPath = path.join(uploadsDir, existing.certImage);
-                if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-            }
-            certImage = req.files['certImage'][0].filename;
-        }
 
         const horse = db.updateHorse(req.params.id, req.userId, {
             name,
             age: parseInt(age),
             breed,
             gender,
-            image,
+            image: image || existing.image,
             fatherName,
             motherName,
-            certImage
+            certImage: certImage || existing.certImage
         });
         res.json(horse);
     } catch (err) {
@@ -174,11 +124,6 @@ app.delete('/api/horses/:id', authMiddleware, (req, res) => {
             const result = db.deleteHorseAdmin(req.params.id);
             if (!result) return res.status(404).json({ error: 'Horse not found' });
             deleted = result.horse;
-            // Delete image file
-            if (deleted.image) {
-                const imgPath = path.join(uploadsDir, deleted.image);
-                if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
-            }
             // Return all related firebaseIds for Firestore cleanup
             res.json({
                 success: true,
@@ -192,10 +137,6 @@ app.delete('/api/horses/:id', authMiddleware, (req, res) => {
         } else {
             const existing = db.getHorse(req.params.id, req.userId);
             if (!existing) return res.status(404).json({ error: 'Horse not found' });
-            if (existing.image) {
-                const imgPath = path.join(uploadsDir, existing.image);
-                if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
-            }
             deleted = db.deleteHorse(req.params.id, req.userId);
             res.json({ success: true, firebaseId: deleted?.firebaseId });
         }
@@ -379,18 +320,10 @@ app.post('/api/migrate', authMiddleware, (req, res) => {
 
         // Import horses
         for (const horse of (horses || [])) {
+            // For migration, store the base64 image URL directly or null
             let imagePath = null;
-
-            // Handle base64 image from Firestore
-            if (horse.image && horse.image.startsWith('data:')) {
-                const matches = horse.image.match(/^data:image\/(\w+);base64,(.+)$/);
-                if (matches) {
-                    const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
-                    const filename = `${uuidv4()}.${ext}`;
-                    const buffer = Buffer.from(matches[2], 'base64');
-                    fs.writeFileSync(path.join(uploadsDir, filename), buffer);
-                    imagePath = filename;
-                }
+            if (horse.image && horse.image.startsWith('http')) {
+                imagePath = horse.image; // Already a URL (Firebase Storage)
             }
 
             const newHorse = db.addHorse(req.userId, {

@@ -9,17 +9,6 @@ function getHeaders(userId, userEmail) {
     return headers;
 }
 
-function getUploadHeaders(userId, userEmail) {
-    const headers = { 'X-User-Id': userId };
-    if (userEmail) headers['X-User-Email'] = userEmail;
-    return headers;
-}
-
-export function getImageUrl(filename) {
-    if (!filename) return null;
-    return `${API_BASE}/uploads/${filename}`;
-}
-
 // ===== ADMIN =====
 export async function checkAdmin(userId, userEmail) {
     const res = await fetch(`${API_BASE}/api/auth/check-admin`, { headers: getHeaders(userId, userEmail) });
@@ -38,21 +27,21 @@ export async function fetchHorses(userId, userEmail) {
     return res.json();
 }
 
-export async function createHorse(userId, formData, userEmail) {
+export async function createHorse(userId, data, userEmail) {
     const res = await fetch(`${API_BASE}/api/horses`, {
         method: 'POST',
-        headers: getUploadHeaders(userId, userEmail),
-        body: formData,
+        headers: getHeaders(userId, userEmail),
+        body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error(`Failed to create horse: ${res.status} ${res.statusText}`);
     return res.json();
 }
 
-export async function updateHorse(userId, id, formData, userEmail) {
+export async function updateHorse(userId, id, data, userEmail) {
     const res = await fetch(`${API_BASE}/api/horses/${id}`, {
         method: 'PUT',
-        headers: getUploadHeaders(userId, userEmail),
-        body: formData,
+        headers: getHeaders(userId, userEmail),
+        body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error(`Failed to update horse: ${res.status} ${res.statusText}`);
     return res.json();

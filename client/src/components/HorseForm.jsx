@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { getImageUrl } from '../api';
+import { uploadImage } from '../firebaseStorage';
 
 export default function HorseForm({ horse, onSubmit, onClose }) {
     const [name, setName] = useState(horse?.name || '');
@@ -10,13 +10,10 @@ export default function HorseForm({ horse, onSubmit, onClose }) {
     const [motherName, setMotherName] = useState(horse?.motherName || '');
     const [imageFile, setImageFile] = useState(null);
     const [certFile, setCertFile] = useState(null);
-    const [preview, setPreview] = useState(
-        horse?.image ? getImageUrl(horse.image) : null
-    );
-    const [certPreview, setCertPreview] = useState(
-        horse?.certImage ? getImageUrl(horse.certImage) : null
-    );
+    const [preview, setPreview] = useState(horse?.image || null);
+    const [certPreview, setCertPreview] = useState(horse?.certImage || null);
     const [loading, setLoading] = useState(false);
+    const [uploadStatus, setUploadStatus] = useState('');
     const fileInputRef = useRef(null);
     const cameraInputRef = useRef(null);
     const certInputRef = useRef(null);
@@ -49,23 +46,43 @@ export default function HorseForm({ horse, onSubmit, onClose }) {
         }
 
         setLoading(true);
-        const formData = new FormData();
-        formData.append('name', name);
-        formData.append('age', age);
-        formData.append('breed', breed);
-        formData.append('gender', gender);
-        if (fatherName) formData.append('fatherName', fatherName);
-        if (motherName) formData.append('motherName', motherName);
+        try {
+            // Upload images to Firebase Storage if new files were selected
+            let imageUrl = horse?.image || null;
+            let certImageUrl = horse?.certImage || null;
 
-        if (imageFile) {
-            formData.append('image', imageFile);
-        }
-        if (certFile) {
-            formData.append('certImage', certFile);
-        }
+            if (imageFile) {
+                setUploadStatus('מעלה תמונת סוס...');
+                imageUrl = await uploadImage(imageFile, 'horses');
+            }
 
-        await onSubmit(formData);
-        setLoading(false);
+            if (certFile) {
+                setUploadStatus('מעלה תעודה...');
+                certImageUrl = await uploadImage(certFile, 'certificates');
+            }
+
+            setUploadStatus('שומר נתונים...');
+
+            // Send JSON data with image URLs to server
+            const data = {
+                name,
+                age: parseInt(age),
+                breed,
+                gender,
+                fatherName: fatherName || null,
+                motherName: motherName || null,
+                image: imageUrl,
+                certImage: certImageUrl,
+            };
+
+            await onSubmit(data);
+        } catch (err) {
+            console.error('Error submitting horse:', err);
+            alert('שגיאה בשמירת הנתונים');
+        } finally {
+            setLoading(false);
+            setUploadStatus('');
+        }
     };
 
     return (
@@ -206,9 +223,9 @@ export default function HorseForm({ horse, onSubmit, onClose }) {
 
                     <div className="modal-actions">
                         <button type="submit" className="btn btn-primary" disabled={loading}>
-                            {loading ? 'שומר...' : (horse ? 'עדכן סוס' : 'הוסף סוס')}
+                            {loading ? (uploadStatus || 'שומר...') : (horse ? 'עדכן סוס' : 'הוסף סוס')}
                         </button>
-                        <button type="button" className="btn btn-secondary" onClick={onClose}>
+                        <button type="button" className="btn btn-secondary" onClick={onClose} disabled={loading}>
                             ביטול
                         </button>
                     </div>
