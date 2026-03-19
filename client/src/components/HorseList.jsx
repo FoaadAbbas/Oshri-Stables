@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { doc, deleteDoc, addDoc, updateDoc, collection } from 'firebase/firestore';
 import { firestoreDb } from '../firebase';
-import { deleteImage } from '../firebaseStorage';
 import HorseForm from './HorseForm';
 import HorseTimeline from './HorseTimeline';
 import * as api from '../api';
@@ -27,14 +26,7 @@ export default function HorseList({ horses, visits, vaccines, pregnancies, userI
     const handleDelete = async (id) => {
         if (!confirm('האם אתה בטוח שברצונך למחוק את הסוס? פעולה זו תמחק גם את כל הנתונים המשויכים אליו.')) return;
         try {
-            // Find the horse to get image URLs for cleanup
-            const horseToDelete = horses.find(h => h.id === id);
-            
             const result = await api.deleteHorse(userId, id, userEmail);
-
-            // Delete images from Firebase Storage
-            if (horseToDelete?.image) deleteImage(horseToDelete.image);
-            if (horseToDelete?.certImage) deleteImage(horseToDelete.certImage);
 
             if (result.firebaseId) {
                 try {
@@ -223,6 +215,8 @@ export default function HorseList({ horses, visits, vaccines, pregnancies, userI
                     horse={editHorse}
                     onSubmit={handleFormSubmit}
                     onClose={handleFormClose}
+                    userId={userId}
+                    userEmail={userEmail}
                 />
             )}
 

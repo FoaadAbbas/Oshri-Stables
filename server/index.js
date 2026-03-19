@@ -3,11 +3,30 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const cors = require('cors');
+const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
 const db = require('./database');
 
 const app = express();
 
 const PORT = process.env.PORT || 5000;
+
+// Cloudinary config (credentials stay server-side only)
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Multer with memory storage (no disk writes)
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) cb(null, true);
+        else cb(new Error('Only image files are allowed'));
+    }
+});
 
 // Middleware
 const allowedOrigins = (process.env.CORS_ORIGIN || '*')
@@ -58,6 +77,32 @@ app.get('/api/debug-config', (req, res) => {
         port: PORT,
         corsOrigin: process.env.CORS_ORIGIN
     });
+});
+
+// ===== IMAGE UPLOAD (Cloudinary) =====
+app.post('/api/upload', authMiddleware, upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ error: 'No image file provided' });
+
+        const folder = req.body.folder || 'oshri-stables';
+
+        // Upload buffer to Cloudinary via stream
+        const result = await new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+                { folder, resource_type: 'image' },
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            );
+            stream.end(req.file.buffer);
+        });
+
+        res.json({ url: result.secure_url });
+    } catch (err) {
+        console.error('Upload error:', err);
+        res.status(500).json({ error: 'Image upload failed' });
+    }
 });
 
 // ===== ADMIN CHECK =====

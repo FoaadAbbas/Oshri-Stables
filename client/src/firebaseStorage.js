@@ -1,38 +1,33 @@
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { storage } from './firebase';
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
 /**
- * Upload an image file to Firebase Storage
+ * Upload an image file to Cloudinary via the server
+ * (API key stays server-side, never exposed to browser)
  * @param {File} file - The image file to upload
- * @param {string} folder - The storage folder (e.g., 'horses', 'certificates')
- * @returns {Promise<string>} The download URL
+ * @param {string} userId - User ID for auth
+ * @param {string} userEmail - User email for auth
+ * @param {string} folder - Cloudinary folder name
+ * @returns {Promise<string>} The image URL
  */
-export async function uploadImage(file, folder = 'horses') {
-    const timestamp = Date.now();
-    const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
-    const storageRef = ref(storage, `${folder}/${timestamp}_${safeName}`);
-    
-    await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
-    return url;
-}
+export async function uploadImage(file, userId, userEmail, folder = 'horses') {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('folder', `oshri-stables/${folder}`);
 
-/**
- * Delete an image from Firebase Storage by its download URL
- * @param {string} url - The Firebase Storage download URL
- */
-export async function deleteImage(url) {
-    if (!url || !url.includes('firebase')) return;
-    try {
-        // Extract the path from the download URL
-        const decodedUrl = decodeURIComponent(url);
-        const pathMatch = decodedUrl.match(/\/o\/(.+?)\?/);
-        if (pathMatch) {
-            const filePath = pathMatch[1];
-            const storageRef = ref(storage, filePath);
-            await deleteObject(storageRef);
-        }
-    } catch (err) {
-        console.warn('Failed to delete image from Firebase Storage:', err);
+    const headers = { 'X-User-Id': userId };
+    if (userEmail) headers['X-User-Email'] = userEmail;
+
+    const res = await fetch(`${API_BASE}/api/upload`, {
+        method: 'POST',
+        headers,
+        body: formData,
+    });
+
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Image upload failed');
     }
+
+    const data = await res.json();
+    return data.url;
 }

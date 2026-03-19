@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { uploadImage } from '../firebaseStorage';
 
-export default function HorseForm({ horse, onSubmit, onClose }) {
+export default function HorseForm({ horse, onSubmit, onClose, userId, userEmail }) {
     const [name, setName] = useState(horse?.name || '');
     const [age, setAge] = useState(horse?.age || '');
     const [breed, setBreed] = useState(horse?.breed || '');
@@ -53,12 +53,12 @@ export default function HorseForm({ horse, onSubmit, onClose }) {
 
             if (imageFile) {
                 setUploadStatus('מעלה תמונת סוס...');
-                imageUrl = await uploadImage(imageFile, 'horses');
+                imageUrl = await uploadImage(imageFile, userId, userEmail, 'horses');
             }
 
             if (certFile) {
                 setUploadStatus('מעלה תעודה...');
-                certImageUrl = await uploadImage(certFile, 'certificates');
+                certImageUrl = await uploadImage(certFile, userId, userEmail, 'certificates');
             }
 
             setUploadStatus('שומר נתונים...');
