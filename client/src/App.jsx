@@ -12,6 +12,7 @@ import Notifications from './components/Notifications';
 import Chatbot from './components/Chatbot';
 import StatsDashboard from './components/StatsDashboard';
 import * as api from './api';
+import { startKeepAlive, stopKeepAlive } from './api';
 
 const TABS = [
     { id: 'horses', label: '🐴 ניהול סוסים', icon: '🐴' },
@@ -40,6 +41,16 @@ export default function App() {
         });
         return unsubscribe;
     }, []);
+
+    // Keep backend alive while user has the app open
+    useEffect(() => {
+        if (user) {
+            startKeepAlive();
+        } else {
+            stopKeepAlive();
+        }
+        return () => stopKeepAlive();
+    }, [user]);
 
     // Load all data when user changes
     const loadData = useCallback(async () => {

@@ -68,6 +68,11 @@ const authMiddleware = (req, res, next) => {
     next();
 };
 
+// ===== HEALTH CHECK (keep-alive) =====
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: Date.now() });
+});
+
 // ===== DEBUG CONFIG (REMOVE IN PRODUCTION IF SENSITIVE) =====
 app.get('/api/debug-config', (req, res) => {
     res.json({

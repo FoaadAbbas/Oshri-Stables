@@ -181,3 +181,28 @@ export async function migrateData(userId, data) {
     if (!res.ok) throw new Error(`Migration failed: ${res.status} ${res.statusText}`);
     return res.json();
 }
+
+// ===== KEEP-ALIVE (prevent backend from sleeping) =====
+const KEEP_ALIVE_INTERVAL_MS = 3 * 60 * 1000; // 3 minutes
+let keepAliveTimer = null;
+
+async function pingHealth() {
+    try {
+        await fetch(`${API_BASE}/api/health`);
+    } catch {
+        // Silently ignore – the next ping will retry
+    }
+}
+
+export function startKeepAlive() {
+    if (keepAliveTimer) return; // Already running
+    pingHealth(); // Immediate first ping to wake up the server
+    keepAliveTimer = setInterval(pingHealth, KEEP_ALIVE_INTERVAL_MS);
+}
+
+export function stopKeepAlive() {
+    if (keepAliveTimer) {
+        clearInterval(keepAliveTimer);
+        keepAliveTimer = null;
+    }
+}
