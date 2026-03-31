@@ -10,13 +10,18 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping backend health endpoint
+      - name: Ping backend every 50 seconds for 5 minutes
         run: |
-          echo "🏓 Pinging backend at $(date -u)..."
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://oshri-stables-api.onrender.com/api/health)
-          echo "Response status: $HTTP_STATUS"
-          if [ "$HTTP_STATUS" -eq 200 ]; then
-            echo "✅ Backend is alive!"
-          else
-            echo "⚠️ Backend returned status $HTTP_STATUS — it may be waking up."
-          fi
+          for i in 1 2 3 4 5 6; do
+            echo "🏓 Ping #$i at $(date -u)..."
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://oshri-stables-api.onrender.com/api/health)
+            if [ "$HTTP_STATUS" -eq 200 ]; then
+              echo "✅ Backend is alive! (status: $HTTP_STATUS)"
+            else
+              echo "⚠️ Backend returned status $HTTP_STATUS"
+            fi
+            if [ $i -lt 6 ]; then
+              sleep 50
+            fi
+          done
+          echo "🏁 Done — 6 pings over ~5 minutes."
