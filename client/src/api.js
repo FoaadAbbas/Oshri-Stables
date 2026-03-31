@@ -183,7 +183,7 @@ export async function migrateData(userId, data) {
 }
 
 // ===== KEEP-ALIVE (prevent backend from sleeping) =====
-const KEEP_ALIVE_INTERVAL_MS = 50 * 1000; // 50 seconds
+const KEEP_ALIVE_INTERVAL_MS = 45 * 1000; // 45 seconds
 let keepAliveTimer = null;
 
 async function pingHealth() {

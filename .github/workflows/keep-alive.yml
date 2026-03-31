@@ -10,9 +10,9 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping backend every 50 seconds for 5 minutes
+      - name: Ping backend every 45 seconds for 5 minutes
         run: |
-          for i in 1 2 3 4 5 6; do
+          for i in 1 2 3 4 5 6 7; do
             echo "🏓 Ping #$i at $(date -u)..."
             HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://oshri-stables-api.onrender.com/api/health)
             if [ "$HTTP_STATUS" -eq 200 ]; then
@@ -20,8 +20,8 @@ jobs:
             else
               echo "⚠️ Backend returned status $HTTP_STATUS"
             fi
-            if [ $i -lt 6 ]; then
-              sleep 50
+            if [ $i -lt 7 ]; then
+              sleep 45
             fi
           done
-          echo "🏁 Done — 6 pings over ~5 minutes."
+          echo "🏁 Done — 7 pings over ~5 minutes."
