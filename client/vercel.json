@@ -2,11 +2,11 @@
     "rewrites": [
         {
             "source": "/api/(.*)",
-            "destination": "https://oshristables-api.onrender.com/api/$1"
+            "destination": "https://oshri-stables.onrender.com/api/$1"
         },
         {
             "source": "/uploads/(.*)",
-            "destination": "https://oshristables-api.onrender.com/uploads/$1"
+            "destination": "https://oshri-stables.onrender.com/uploads/$1"
         },
         {
             "source": "/(.*)",
